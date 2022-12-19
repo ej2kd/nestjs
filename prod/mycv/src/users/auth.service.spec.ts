@@ -6,14 +6,25 @@ import { UsersService } from './users.service';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let fakeUsesrsService: Partial<UsersService>;
+  let fakeUsersService: Partial<UsersService>;
 
   beforeEach(async () => {
     // Create a fake copy of the UsersService
-    fakeUsesrsService = {
-      find: () => Promise.resolve([]),
-      create: (email: string, password: string) =>
-        Promise.resolve({ id: 1, email, password } as User),
+    const users: User[] = [];
+    fakeUsersService = {
+      find: (email: string) => {
+        const filteredUsers = users.filter((user) => user.email === email);
+        return Promise.resolve(filteredUsers);
+      },
+      create: (email: string, password: string) => {
+        const user = {
+          id: Math.floor(Math.random() * 999999),
+          email,
+          password,
+        } as User;
+        users.push(user);
+        return Promise.resolve(user);
+      },
     };
 
     const module = await Test.createTestingModule({
@@ -21,7 +32,7 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: UsersService,
-          useValue: fakeUsesrsService, // Override the actual UsersService
+          useValue: fakeUsersService, // Override the actual UsersService
         },
       ],
     }).compile();
@@ -43,8 +54,7 @@ describe('AuthService', () => {
   });
 
   it('throws an error if user sings up with email that is in use', async () => {
-    fakeUsesrsService.find = () =>
-      Promise.resolve([{ id: 1, email: 'a', password: '1' } as User]);
+    await service.signup('asdf@asdf.com', 'asdf');
     await expect(service.signup('asdf@asdf.com', 'asdf')).rejects.toThrow(
       BadRequestException,
     );
@@ -57,24 +67,14 @@ describe('AuthService', () => {
   });
 
   it('throws if an invalid password is provided', async () => {
-    fakeUsesrsService.find = () =>
-      Promise.resolve([
-        { email: 'asdf@asdf.com', password: 'laskdjf' } as User,
-      ]);
+    await service.signup('asdf@asdf.com', 'laskdjf');
     await expect(service.signin('asdf@asdf.com', 'password')).rejects.toThrow(
       BadRequestException,
     );
   });
 
   it('returns a user if correct password is provided', async () => {
-    fakeUsesrsService.find = () =>
-      Promise.resolve([
-        {
-          email: 'asdf@asdf.com',
-          password:
-            '4c010df3d628fa21.768859314be051574bb066c9a1be32d6a7189d5cc8f7f5844c01f19048917e6b',
-        } as User,
-      ]);
+    await service.signup('asdf@asdf.com', 'mypassword'); // Store a user in memory
 
     const user = await service.signin('asdf@asdf.com', 'mypassword');
     expect(user).toBeDefined();
