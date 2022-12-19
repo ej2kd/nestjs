@@ -8,7 +8,7 @@ import {
   Query,
   Delete,
   NotFoundException,
-  Session
+  Session,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpateUserDto } from './dtos/update-user.dto';
@@ -26,7 +26,7 @@ import { AuthGuard } from 'src/guards/auth.guard';
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   // @Get('whoami')
@@ -62,7 +62,7 @@ export class UsersController {
   @Get('/:id') // In Request Query, id is string.
   async findUser(@Param('id') id: string) {
     console.log('handler is running');
-    
+
     const user = await this.usersService.findOne(parseInt(id));
     if (!user) {
       throw new NotFoundException('user not found');
