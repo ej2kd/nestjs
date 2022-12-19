@@ -6,12 +6,12 @@ import { UsersService } from './users.service';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let fakeUsesrsService: Partial<UsersService>;
+  let fakeUsersService: Partial<UsersService>;
 
   beforeEach(async () => {
     // Create a fake copy of the UsersService
     const users: User[] = [];
-    fakeUsesrsService = {
+    fakeUsersService = {
       find: (email: string) => {
         const filteredUsers = users.filter((user) => user.email === email);
         return Promise.resolve(filteredUsers);
@@ -32,7 +32,7 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: UsersService,
-          useValue: fakeUsesrsService, // Override the actual UsersService
+          useValue: fakeUsersService, // Override the actual UsersService
         },
       ],
     }).compile();
